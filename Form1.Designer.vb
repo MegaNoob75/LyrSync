@@ -41,6 +41,7 @@ Partial Class Form1
         chkFallbackUnsynced = New CheckBox()
         lblTimeInfo = New Label()
         chkSkipIfSynced = New CheckBox()
+        chkRetryFailed = New CheckBox()
         CType(numMaxConcurrent, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
@@ -209,6 +210,16 @@ Partial Class Form1
         chkSkipIfSynced.Text = "Skip if already has synced lyrics"
         chkSkipIfSynced.UseVisualStyleBackColor = True
         ' 
+        ' chkRetryFailed
+        ' 
+        chkRetryFailed.AutoSize = True
+        chkRetryFailed.Location = New Point(682, 496)
+        chkRetryFailed.Name = "chkRetryFailed"
+        chkRetryFailed.Size = New Size(138, 19)
+        chkRetryFailed.TabIndex = 18
+        chkRetryFailed.Text = "Retry failed files once"
+        chkRetryFailed.UseVisualStyleBackColor = True
+        ' 
         ' Form1
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
@@ -216,6 +227,7 @@ Partial Class Form1
         AutoSize = True
         BackColor = SystemColors.ControlDarkDark
         ClientSize = New Size(1021, 881)
+        Controls.Add(chkRetryFailed)
         Controls.Add(chkSkipIfSynced)
         Controls.Add(lblTimeInfo)
         Controls.Add(chkFallbackUnsynced)
@@ -259,5 +271,6 @@ Partial Class Form1
     Friend WithEvents chkFallbackUnsynced As CheckBox
     Friend WithEvents lblTimeInfo As Label
     Friend WithEvents chkSkipIfSynced As CheckBox
+    Friend WithEvents chkRetryFailed As CheckBox
 
 End Class

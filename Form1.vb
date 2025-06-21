@@ -30,6 +30,7 @@ Public Class Form1
     'estimate time and elapsed time
     Private processStartTime As DateTime
     Private elapsedTimer As System.Windows.Forms.Timer
+    Private failedFilePaths As New List(Of String)
 
     Private Sub EnableDoubleBuffering(lv As ListView)
         Dim prop = GetType(Control).GetProperty("DoubleBuffered", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance)
@@ -104,9 +105,36 @@ Public Class Form1
 
         ' Set maximum concurrency based on user input
         semaphore = New SemaphoreSlim(CInt(numMaxConcurrent.Value))
+        'clear faild files from list
+        failedFilePaths.Clear()
 
         ' Start processing all files asynchronously
         Await ProcessAllFiles(selectedFolder, cancelToken)
+
+        ' Retry failed files once if enabled
+        If chkRetryFailed.Checked AndAlso failedFilePaths.Count > 0 Then
+            UpdateLog("Retrying failed files...")
+            Dim retryTasks As New List(Of Task)
+            Dim retrySemaphore = New SemaphoreSlim(CInt(numMaxConcurrent.Value))
+
+            Dim retryPaths = failedFilePaths.ToList() ' Clone to avoid modification issues
+            failedFilePaths.Clear() ' Reset before retry
+
+            For Each path In retryPaths
+                If cancelToken.IsCancellationRequested Then Exit For
+                Dim localPath = path
+                retryTasks.Add(Task.Run(Async Function()
+                                            Await retrySemaphore.WaitAsync()
+                                            Try
+                                                ProcessFile(localPath, cancelToken)
+                                            Finally
+                                                retrySemaphore.Release()
+                                            End Try
+                                        End Function))
+            Next
+
+            Await Task.WhenAll(retryTasks)
+        End If
 
         taggingRunning = False
         btnStart.Text = "Start Tagging"
@@ -206,7 +234,7 @@ Public Class Form1
 
             If String.IsNullOrWhiteSpace(rawArtist) OrElse String.IsNullOrWhiteSpace(rawTitle) Then
                 Dim msg = "Missing artist or title tag"
-                LogFailure(Path.GetFileName(filePath), msg)
+                LogFailure(filePath, msg)
                 UpdateLog($"{Path.GetFileName(filePath)}: {msg}")
                 Return
             End If
@@ -226,7 +254,7 @@ Public Class Form1
             Dim jsonArray = JArray.Parse(jsonText)
             If jsonArray.Count = 0 Then
                 Dim msg = "No results from API"
-                LogFailure(Path.GetFileName(filePath), msg)
+                LogFailure(filePath, msg)
                 UpdateLog($"{Path.GetFileName(filePath)}: {msg}")
                 Return
             End If
@@ -340,7 +368,7 @@ Public Class Form1
 
             If String.IsNullOrWhiteSpace(finalLyrics) Then
                 Dim msg = "No suitable lyrics found"
-                LogFailure(Path.GetFileName(filePath), msg)
+                LogFailure(filePath, msg)
                 UpdateLog($"{Path.GetFileName(filePath)}: {msg}")
                 Return
             End If
@@ -440,19 +468,28 @@ Public Class Form1
     End Sub
 
     ' Logs a failed tagging attempt and displays it in the UI
-    Sub LogFailure(fileName As String, reason As String)
+    Sub LogFailure(filePath As String, reason As String)
+        Dim fileName = Path.GetFileName(filePath)
+
         Interlocked.Increment(failedFiles)
         UpdateFailedLabel()
+
+        SyncLock lockObj
+            failedFilePaths.Add(filePath)
+        End SyncLock
+
         If lvFileResults.InvokeRequired Then
-            lvFileResults.Invoke(Sub() LogFailure(fileName, reason))
+            lvFileResults.Invoke(Sub() LogFailure(filePath, reason))
         Else
             Dim item As New ListViewItem(fileName)
             item.SubItems.Add(reason)
             item.ForeColor = If(reason.ToLower().Contains("error"), Color.Red, Color.DarkGoldenrod)
             lvFileResults.Items.Add(item)
-            lvFileResults.EnsureVisible(lvFileResults.Items.Count - 1) ' Auto-scroll here
+            lvFileResults.EnsureVisible(lvFileResults.Items.Count - 1)
         End If
     End Sub
+
+
 
     Sub LogSuccess(fileName As String, message As String)
         If lvFileResults.InvokeRequired Then
