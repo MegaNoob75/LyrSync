@@ -39,6 +39,7 @@ Partial Class Form1
         Label2 = New Label()
         Label3 = New Label()
         chkFallbackUnsynced = New CheckBox()
+        lblTimeInfo = New Label()
         CType(numMaxConcurrent, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
@@ -92,7 +93,6 @@ Partial Class Form1
         ' 
         ' txtFolder
         ' 
-        txtFolder.Anchor = AnchorStyles.Top Or AnchorStyles.Left Or AnchorStyles.Right
         txtFolder.Location = New Point(126, 14)
         txtFolder.Name = "txtFolder"
         txtFolder.Size = New Size(543, 23)
@@ -135,12 +135,11 @@ Partial Class Form1
         ' numMaxConcurrent
         ' 
         numMaxConcurrent.Location = New Point(900, 10)
-        numMaxConcurrent.Maximum = New Decimal(New Integer() {500, 0, 0, 0})
         numMaxConcurrent.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
         numMaxConcurrent.Name = "numMaxConcurrent"
         numMaxConcurrent.Size = New Size(50, 23)
         numMaxConcurrent.TabIndex = 10
-        numMaxConcurrent.Value = New Decimal(New Integer() {5, 0, 0, 0})
+        numMaxConcurrent.Value = New Decimal(New Integer() {10, 0, 0, 0})
         ' 
         ' Label1
         ' 
@@ -190,6 +189,15 @@ Partial Class Form1
         chkFallbackUnsynced.Text = "Use unsynced lyrics if synced not found"
         chkFallbackUnsynced.UseVisualStyleBackColor = True
         ' 
+        ' lblTimeInfo
+        ' 
+        lblTimeInfo.AutoSize = True
+        lblTimeInfo.Location = New Point(883, 779)
+        lblTimeInfo.Name = "lblTimeInfo"
+        lblTimeInfo.Size = New Size(28, 15)
+        lblTimeInfo.TabIndex = 16
+        lblTimeInfo.Text = "0:00"
+        ' 
         ' Form1
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
@@ -197,6 +205,7 @@ Partial Class Form1
         AutoSize = True
         BackColor = SystemColors.ControlDarkDark
         ClientSize = New Size(1021, 881)
+        Controls.Add(lblTimeInfo)
         Controls.Add(chkFallbackUnsynced)
         Controls.Add(Label3)
         Controls.Add(Label2)
@@ -236,5 +245,6 @@ Partial Class Form1
     Friend WithEvents Label2 As Label
     Friend WithEvents Label3 As Label
     Friend WithEvents chkFallbackUnsynced As CheckBox
+    Friend WithEvents lblTimeInfo As Label
 
 End Class

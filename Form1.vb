@@ -29,6 +29,16 @@ Public Class Form1
     ' Tracks sorting column for ListView
     Private sortColumn As Integer = -1
     Private sortOrder As SortOrder = SortOrder.Ascending
+    'estimate time and elapsed time
+    Private processStartTime As DateTime
+    Private elapsedTimer As System.Windows.Forms.Timer
+
+    Private Sub EnableDoubleBuffering(lv As ListView)
+        Dim prop = GetType(Control).GetProperty("DoubleBuffered", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance)
+        If prop IsNot Nothing Then
+            prop.SetValue(lv, True, Nothing)
+        End If
+    End Sub
 
     ' Opens a folder dialog to select a folder containing FLAC files
     Private Sub btnSelectFolder_Click(sender As Object, e As EventArgs) Handles btnSelectFolder.Click
@@ -77,6 +87,14 @@ Public Class Form1
         btnStart.Text = "Cancel"
         btnStart.Enabled = True
 
+        processStartTime = DateTime.Now
+
+        ' Setup and start the timer to update elapsed/estimated time every second
+        elapsedTimer = New System.Windows.Forms.Timer()
+        elapsedTimer.Interval = 1000 ' 1 second
+        AddHandler elapsedTimer.Tick, AddressOf ElapsedTimer_Tick
+        elapsedTimer.Start()
+
         ProgressBar.Value = 0
         lstLog.Items.Clear()
         lvFileResults.Items.Clear()
@@ -93,13 +111,44 @@ Public Class Form1
         Await ProcessAllFiles(selectedFolder, cancelToken)
 
         taggingRunning = False
-        Invoke(Sub()
-                   btnStart.Text = "Start Tagging"
-                   btnStart.Enabled = True
-               End Sub)
+        btnStart.Text = "Start Tagging"
+        btnStart.Enabled = True
+
+        elapsedTimer.Stop()
+        elapsedTimer.Dispose()
 
         lstLog.Items.Add("Finished.")
         lstLog.TopIndex = lstLog.Items.Count - 1
+    End Sub
+
+
+    Private Sub ElapsedTimer_Tick(sender As Object, e As EventArgs)
+        Dim elapsed = DateTime.Now - processStartTime
+
+        Dim averageTimePerFile As TimeSpan
+        Dim estimatedRemaining As TimeSpan
+
+        If completedFiles > 0 Then
+            averageTimePerFile = TimeSpan.FromTicks(elapsed.Ticks \ completedFiles)
+            Dim filesLeft = totalFiles - completedFiles
+            estimatedRemaining = TimeSpan.FromTicks(averageTimePerFile.Ticks * filesLeft)
+        Else
+            averageTimePerFile = TimeSpan.Zero
+            estimatedRemaining = TimeSpan.Zero
+        End If
+
+        Dim elapsedStr = $"{elapsed.Hours:D2}:{elapsed.Minutes:D2}:{elapsed.Seconds:D2}"
+        Dim estimatedStr = If(estimatedRemaining.TotalSeconds > 0,
+                          $"{estimatedRemaining.Hours:D2}:{estimatedRemaining.Minutes:D2}:{estimatedRemaining.Seconds:D2}",
+                          "Calculating...")
+
+        If lblTimeInfo.InvokeRequired Then
+            lblTimeInfo.Invoke(Sub()
+                                   lblTimeInfo.Text = $"Elapsed Time: {elapsedStr} | Estimated Remaining: {estimatedStr}"
+                               End Sub)
+        Else
+            lblTimeInfo.Text = $"Elapsed Time: {elapsedStr} | Estimated Remaining: {estimatedStr}"
+        End If
     End Sub
 
     ' Runs tagging on all .flac files concurrently using a semaphore
@@ -137,15 +186,14 @@ Public Class Form1
         Await Task.WhenAll(tasks)
     End Function
 
+
     ' Processes a single FLAC file, queries the LRClib API, and writes lyrics to the tag
     Sub ProcessFile(filePath As String, token As CancellationToken)
         If token.IsCancellationRequested Then Return
-
         Try
             Dim tfile = TagLib.File.Create(filePath)
             Dim rawArtist = tfile.Tag.FirstPerformer
             Dim rawTitle = tfile.Tag.Title
-
             If String.IsNullOrWhiteSpace(rawArtist) OrElse String.IsNullOrWhiteSpace(rawTitle) Then
                 Dim msg = "Missing artist or title tag"
                 LogFailure(Path.GetFileName(filePath), msg)
@@ -157,6 +205,7 @@ Public Class Form1
             Dim title = CleanTag(rawTitle)
             Dim localDuration = CInt(tfile.Properties.Duration.TotalSeconds)
             Dim url = $"https://lrclib.net/api/search?track_name={Uri.EscapeDataString(title)}&artist_name={Uri.EscapeDataString(artist)}"
+            'Thread.Sleep(500) ' ← This slows down LRClib
             UpdateLog($"Querying: {artist} - {title}")
 
             Dim jsonText As String = ""
@@ -165,17 +214,23 @@ Public Class Form1
             End Using
 
             Dim jsonArray = JArray.Parse(jsonText)
-            Dim bestMatch As JObject = Nothing
-            Dim highestScore As Integer = -1
-            Dim finalLyrics As String = ""
-            Dim bestLyricsType As String = ""
+            If jsonArray.Count = 0 Then
+                Dim msg = "No results from API"
+                LogFailure(Path.GetFileName(filePath), msg)
+                UpdateLog($"{Path.GetFileName(filePath)}: {msg}")
+                Return
+            End If
 
             ' Try synced lyrics first
+            Dim bestMatch As JObject = Nothing
+            Dim highestScore As Integer = -1
+
             For Each result As JObject In jsonArray
                 Dim lyricsSync = result.Value(Of String)("syncedLyrics")
                 Dim resArtist = result.Value(Of String)("artist_name")?.ToLower()
                 Dim resTitle = result.Value(Of String)("track_name")?.ToLower()
                 Dim resultDuration = result.Value(Of Integer?)("duration").GetValueOrDefault(0)
+
                 If String.IsNullOrWhiteSpace(lyricsSync) OrElse resultDuration = 0 Then Continue For
 
                 Dim score As Integer = 0
@@ -202,12 +257,10 @@ Public Class Form1
                 If score > highestScore Then
                     bestMatch = result
                     highestScore = score
-                    finalLyrics = lyricsSync
-                    bestLyricsType = "synced"
                 End If
             Next
 
-            ' Try unsynced if fallback is enabled
+            ' If no synced lyrics found, and fallback to unsynced is enabled, try unsynced LRClib lyrics
             If bestMatch Is Nothing AndAlso chkFallbackUnsynced.Checked Then
                 highestScore = -1
                 For Each result As JObject In jsonArray
@@ -215,9 +268,8 @@ Public Class Form1
                     Dim resArtist = result.Value(Of String)("artist_name")?.ToLower()
                     Dim resTitle = result.Value(Of String)("track_name")?.ToLower()
                     Dim resultDuration = result.Value(Of Integer?)("duration").GetValueOrDefault(0)
-                    If String.IsNullOrWhiteSpace(lyricsPlain) OrElse resultDuration = 0 Then Continue For
 
-                    UpdateLog($"Checked fallback result: {resArtist} - {resTitle} (lyrics length: {If(lyricsPlain Is Nothing, 0, lyricsPlain.Length)})")
+                    If String.IsNullOrWhiteSpace(lyricsPlain) OrElse resultDuration = 0 Then Continue For
 
                     Dim score As Integer = 0
                     If resArtist = artist.ToLower() Then
@@ -243,19 +295,36 @@ Public Class Form1
                     If score > highestScore Then
                         bestMatch = result
                         highestScore = score
-                        finalLyrics = lyricsPlain
-                        bestLyricsType = "unsynced (lrclib)"
                     End If
                 Next
             End If
 
-            ' Try Lyrics.ovh as final fallback
-            If bestMatch Is Nothing AndAlso chkFallbackUnsynced.Checked Then
-                Dim ovhLyrics = FetchUnsyncedLyricsFromLyricsOvh(artist, title)
-                If Not String.IsNullOrWhiteSpace(ovhLyrics) Then
-                    finalLyrics = ovhLyrics
-                    bestLyricsType = "unsynced (Lyrics.ovh)"
-                    UpdateLog($"Used fallback from Lyrics.ovh for: {artist} - {title}")
+            Dim finalLyrics As String = ""
+            Dim usedSynced As Boolean = False
+
+            If bestMatch IsNot Nothing Then
+                Dim synced = bestMatch.Value(Of String)("syncedLyrics")
+                If Not String.IsNullOrWhiteSpace(synced) Then
+                    finalLyrics = synced
+                    usedSynced = True
+                ElseIf chkFallbackUnsynced.Checked Then
+                    Dim plain = bestMatch.Value(Of String)("lyrics")
+                    If Not String.IsNullOrWhiteSpace(plain) Then
+                        finalLyrics = plain
+                        usedSynced = False
+                        UpdateLog($"Falling back to unsynced LRClib lyrics for: {artist} - {title}")
+                    End If
+                End If
+            End If
+
+            ' If still no lyrics and fallback unsynced is checked, try lyrics.ovh fallback
+            If String.IsNullOrWhiteSpace(finalLyrics) AndAlso chkFallbackUnsynced.Checked Then
+                UpdateLog($"Trying fallback source lyrics.ovh for: {artist} - {title}")
+                Dim lyricsOvh = GetLyricsFromLyricsOvh(artist, title)
+                If Not String.IsNullOrWhiteSpace(lyricsOvh) Then
+                    finalLyrics = lyricsOvh
+                    usedSynced = False
+                    UpdateLog($"Using lyrics.ovh fallback for: {artist} - {title}")
                 End If
             End If
 
@@ -266,12 +335,14 @@ Public Class Form1
                 Return
             End If
 
+            ' Save lyrics tag
             SyncLock lockObj
                 tfile.Tag.Lyrics = finalLyrics
                 tfile.Save()
             End SyncLock
 
-            LogSuccess(Path.GetFileName(filePath), "Tagged successfully (" & bestLyricsType & ")")
+            Dim lyricTypeText As String = If(usedSynced, " (Synced)", " (Unsynced)")
+            LogSuccess(Path.GetFileName(filePath), "Tagged successfully" & lyricTypeText)
             UpdateLog($"Tagged: {artist} - {title}")
 
         Catch ex As Exception
@@ -283,29 +354,24 @@ Public Class Form1
         End Try
     End Sub
 
-    Function FetchUnsyncedLyricsFromLyricsOvh(artist As String, title As String) As String
+
+    ' Helper to get lyrics from lyrics.ovh
+    Function GetLyricsFromLyricsOvh(artist As String, title As String) As String
         Try
+            ' Add a delay before the request (e.g., 500 milliseconds)
+            'Thread.Sleep(500)
+
             Dim url = $"https://api.lyrics.ovh/v1/{Uri.EscapeDataString(artist)}/{Uri.EscapeDataString(title)}"
             Using client As New WebClient()
-                Dim jsonText = client.DownloadString(url)
-                Dim json = JObject.Parse(jsonText)
-                Dim lyrics = json.Value(Of String)("lyrics")
-                Return If(String.IsNullOrWhiteSpace(lyrics), Nothing, lyrics)
+                Dim json = client.DownloadString(url)
+                Dim obj = JObject.Parse(json)
+                Dim lyrics = obj.Value(Of String)("lyrics")
+                Return lyrics
             End Using
         Catch ex As Exception
-            UpdateLog($"Lyrics.ovh error: {ex.Message}")
+            Return ""
         End Try
-        Return Nothing
     End Function
-
-
-
-
-
-
-
-
-
 
 
 
@@ -417,6 +483,7 @@ Public Class Form1
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         lstLog.DrawMode = DrawMode.OwnerDrawFixed
         AddHandler lstLog.DrawItem, AddressOf lstLog_DrawItem
+        EnableDoubleBuffering(lvFileResults)
     End Sub
     Private Sub lstLog_DrawItem(sender As Object, e As DrawItemEventArgs)
         If e.Index < 0 Then Return
