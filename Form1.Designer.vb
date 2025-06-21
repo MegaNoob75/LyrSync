@@ -219,6 +219,7 @@ Partial Class Form1
         chkRetryFailed.TabIndex = 18
         chkRetryFailed.Text = "Retry failed files once"
         chkRetryFailed.UseVisualStyleBackColor = True
+        chkRetryFailed.Visible = False
         ' 
         ' Form1
         ' 

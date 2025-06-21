@@ -30,7 +30,7 @@ Public Class Form1
     'estimate time and elapsed time
     Private processStartTime As DateTime
     Private elapsedTimer As System.Windows.Forms.Timer
-    Private failedFilePaths As New List(Of String)
+    'Private failedFilePaths As New List(Of String)
 
     Private Sub EnableDoubleBuffering(lv As ListView)
         Dim prop = GetType(Control).GetProperty("DoubleBuffered", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance)
@@ -106,35 +106,35 @@ Public Class Form1
         ' Set maximum concurrency based on user input
         semaphore = New SemaphoreSlim(CInt(numMaxConcurrent.Value))
         'clear faild files from list
-        failedFilePaths.Clear()
+        'failedFilePaths.Clear()
 
         ' Start processing all files asynchronously
         Await ProcessAllFiles(selectedFolder, cancelToken)
 
         ' Retry failed files once if enabled
-        If chkRetryFailed.Checked AndAlso failedFilePaths.Count > 0 Then
-            UpdateLog("Retrying failed files...")
-            Dim retryTasks As New List(Of Task)
-            Dim retrySemaphore = New SemaphoreSlim(CInt(numMaxConcurrent.Value))
+        'If chkRetryFailed.Checked AndAlso failedFilePaths.Count > 0 Then
+        '    UpdateLog("Retrying failed files...")
+        '    Dim retryTasks As New List(Of Task)
+        '    Dim retrySemaphore = New SemaphoreSlim(CInt(numMaxConcurrent.Value))
 
-            Dim retryPaths = failedFilePaths.ToList() ' Clone to avoid modification issues
-            failedFilePaths.Clear() ' Reset before retry
+        '    Dim retryPaths = failedFilePaths.ToList() ' Clone to avoid modification issues
+        '    failedFilePaths.Clear() ' Reset before retry
 
-            For Each path In retryPaths
-                If cancelToken.IsCancellationRequested Then Exit For
-                Dim localPath = path
-                retryTasks.Add(Task.Run(Async Function()
-                                            Await retrySemaphore.WaitAsync()
-                                            Try
-                                                ProcessFile(localPath, cancelToken)
-                                            Finally
-                                                retrySemaphore.Release()
-                                            End Try
-                                        End Function))
-            Next
+        '    For Each path In retryPaths
+        '        If cancelToken.IsCancellationRequested Then Exit For
+        '        Dim localPath = path
+        '        retryTasks.Add(Task.Run(Async Function()
+        '                                    Await retrySemaphore.WaitAsync()
+        '                                    Try
+        '                                        ProcessFile(localPath, cancelToken)
+        '                                    Finally
+        '                                        retrySemaphore.Release()
+        '                                    End Try
+        '                                End Function))
+        '    Next
 
-            Await Task.WhenAll(retryTasks)
-        End If
+        '    Await Task.WhenAll(retryTasks)
+        'End If
 
         taggingRunning = False
         btnStart.Text = "Start Tagging"
@@ -475,7 +475,7 @@ Public Class Form1
         UpdateFailedLabel()
 
         SyncLock lockObj
-            failedFilePaths.Add(filePath)
+            'failedFilePaths.Add(filePath)
         End SyncLock
 
         If lvFileResults.InvokeRequired Then
