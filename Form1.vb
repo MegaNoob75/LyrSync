@@ -1,5 +1,6 @@
 ﻿Imports System.IO
 Imports System.Net
+Imports System.Net.Http
 Imports System.Text.RegularExpressions
 Imports System.Threading
 Imports Newtonsoft.Json.Linq
@@ -31,6 +32,7 @@ Public Class Form1
     Private processStartTime As DateTime
     Private elapsedTimer As System.Windows.Forms.Timer
     'Private failedFilePaths As New List(Of String)
+    Private Shared ReadOnly httpClient As New HttpClient()
 
     Private Sub EnableDoubleBuffering(lv As ListView)
         Dim prop = GetType(Control).GetProperty("DoubleBuffered", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Instance)
@@ -203,7 +205,7 @@ Public Class Form1
             tasks.Add(Task.Run(Async Function()
                                    Await semaphore.WaitAsync()
                                    Try
-                                       ProcessFile(localPath, token)
+                                       Await ProcessFile(localPath, token)
                                    Finally
                                        semaphore.Release()
                                    End Try
@@ -214,7 +216,8 @@ Public Class Form1
 
 
     ' Processes a single FLAC file, queries the LRClib API, and writes lyrics to the tag
-    Sub ProcessFile(filePath As String, token As CancellationToken)
+    Async Function ProcessFile(filePath As String, token As CancellationToken) As Task
+
         If token.IsCancellationRequested Then Return
         Try
             Dim tfile = TagLib.File.Create(filePath)
@@ -247,9 +250,8 @@ Public Class Form1
             UpdateLog($"Querying: {artist} - {title}")
 
             Dim jsonText As String = ""
-            Using client As New WebClient()
-                jsonText = client.DownloadString(url)
-            End Using
+            jsonText = Await httpClient.GetStringAsync(url)
+
 
             Dim jsonArray = JArray.Parse(jsonText)
             If jsonArray.Count = 0 Then
@@ -358,7 +360,7 @@ Public Class Form1
             ' If still no lyrics and fallback unsynced is checked, try lyrics.ovh fallback
             If String.IsNullOrWhiteSpace(finalLyrics) AndAlso chkFallbackUnsynced.Checked Then
                 UpdateLog($"Trying fallback source lyrics.ovh for: {artist} - {title}")
-                Dim lyricsOvh = GetLyricsFromLyricsOvh(artist, title)
+                Dim lyricsOvh = Await GetLyricsFromLyricsOvh(artist, title)
                 If Not String.IsNullOrWhiteSpace(lyricsOvh) Then
                     finalLyrics = lyricsOvh
                     usedSynced = False
@@ -390,26 +392,21 @@ Public Class Form1
             Interlocked.Increment(completedFiles)
             UpdateProgress()
         End Try
-    End Sub
+    End Function
 
 
     ' Helper to get lyrics from lyrics.ovh
-    Function GetLyricsFromLyricsOvh(artist As String, title As String) As String
+    Async Function GetLyricsFromLyricsOvh(artist As String, title As String) As Task(Of String)
         Try
-            ' Add a delay before the request (e.g., 500 milliseconds)
-            'Thread.Sleep(500)
-
             Dim url = $"https://api.lyrics.ovh/v1/{Uri.EscapeDataString(artist)}/{Uri.EscapeDataString(title)}"
-            Using client As New WebClient()
-                Dim json = client.DownloadString(url)
-                Dim obj = JObject.Parse(json)
-                Dim lyrics = obj.Value(Of String)("lyrics")
-                Return lyrics
-            End Using
+            Dim json = Await httpClient.GetStringAsync(url)
+            Dim obj = JObject.Parse(json)
+            Return obj.Value(Of String)("lyrics")
         Catch ex As Exception
             Return ""
         End Try
     End Function
+
 
 
 
