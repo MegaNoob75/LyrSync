@@ -1,9 +1,7 @@
-﻿Imports System.Collections
-Imports System.IO
+﻿Imports System.IO
 Imports System.Net
 Imports System.Text.RegularExpressions
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Newtonsoft.Json.Linq
 
 Imports TagLib
@@ -194,6 +192,18 @@ Public Class Form1
             Dim tfile = TagLib.File.Create(filePath)
             Dim rawArtist = tfile.Tag.FirstPerformer
             Dim rawTitle = tfile.Tag.Title
+
+            ' Check if lyrics already exist and look like synced lyrics (contain timestamps)
+            If chkSkipIfSynced.Checked AndAlso Not String.IsNullOrWhiteSpace(tfile.Tag.Lyrics) Then
+                Dim existingLyrics = tfile.Tag.Lyrics
+                ' Simple check: look for [mm:ss.xx] pattern to detect synced lyrics
+                If Regex.IsMatch(existingLyrics, "\[\d{1,2}:\d{2}(\.\d{1,2})?\]") Then
+                    LogSuccess(Path.GetFileName(filePath), "Skipped (Already has synced lyrics)")
+                    UpdateLog($"{Path.GetFileName(filePath)}: Skipped - already contains synced lyrics.")
+                    Return
+                End If
+            End If
+
             If String.IsNullOrWhiteSpace(rawArtist) OrElse String.IsNullOrWhiteSpace(rawTitle) Then
                 Dim msg = "Missing artist or title tag"
                 LogFailure(Path.GetFileName(filePath), msg)
@@ -450,11 +460,12 @@ Public Class Form1
         Else
             Dim item As New ListViewItem(fileName)
             item.SubItems.Add(message)
-            item.ForeColor = Color.LimeGreen
+            item.ForeColor = If(message.Contains("Skipped"), Color.Aqua, Color.LimeGreen)
             lvFileResults.Items.Add(item)
-            lvFileResults.EnsureVisible(lvFileResults.Items.Count - 1) ' Auto-scroll here
+            lvFileResults.EnsureVisible(lvFileResults.Items.Count - 1)
         End If
     End Sub
+
 
 
 
@@ -487,20 +498,30 @@ Public Class Form1
     End Sub
     Private Sub lstLog_DrawItem(sender As Object, e As DrawItemEventArgs)
         If e.Index < 0 Then Return
+
         Dim lb As ListBox = CType(sender, ListBox)
         Dim text As String = lb.Items(e.Index).ToString()
 
         e.DrawBackground()
 
+        ' Choose color based on message content
         Dim textColor As Brush = Brushes.White
-        If text = "Finished." Then
+        If text.Contains("Error") OrElse text.Contains("error") Then
+            textColor = Brushes.Red
+        ElseIf text.Contains("Failed") OrElse text.Contains("No suitable") Then
+            textColor = Brushes.DarkOrange
+        ElseIf text.Contains("Tagged") Then
             textColor = Brushes.LimeGreen
+        ElseIf text.Contains("Skipped") Then
+            textColor = Brushes.Aqua
+        ElseIf text = "Finished." Then
+            textColor = Brushes.LightGreen
         End If
 
         e.Graphics.DrawString(text, e.Font, textColor, e.Bounds.Location)
-
         e.DrawFocusRectangle()
     End Sub
+
 End Class
 
 

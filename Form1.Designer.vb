@@ -40,6 +40,7 @@ Partial Class Form1
         Label3 = New Label()
         chkFallbackUnsynced = New CheckBox()
         lblTimeInfo = New Label()
+        chkSkipIfSynced = New CheckBox()
         CType(numMaxConcurrent, ComponentModel.ISupportInitialize).BeginInit()
         SuspendLayout()
         ' 
@@ -198,6 +199,16 @@ Partial Class Form1
         lblTimeInfo.TabIndex = 16
         lblTimeInfo.Text = "0:00"
         ' 
+        ' chkSkipIfSynced
+        ' 
+        chkSkipIfSynced.AutoSize = True
+        chkSkipIfSynced.Location = New Point(682, 443)
+        chkSkipIfSynced.Name = "chkSkipIfSynced"
+        chkSkipIfSynced.Size = New Size(190, 19)
+        chkSkipIfSynced.TabIndex = 17
+        chkSkipIfSynced.Text = "Skip if already has synced lyrics"
+        chkSkipIfSynced.UseVisualStyleBackColor = True
+        ' 
         ' Form1
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
@@ -205,6 +216,7 @@ Partial Class Form1
         AutoSize = True
         BackColor = SystemColors.ControlDarkDark
         ClientSize = New Size(1021, 881)
+        Controls.Add(chkSkipIfSynced)
         Controls.Add(lblTimeInfo)
         Controls.Add(chkFallbackUnsynced)
         Controls.Add(Label3)
@@ -246,5 +258,6 @@ Partial Class Form1
     Friend WithEvents Label3 As Label
     Friend WithEvents chkFallbackUnsynced As CheckBox
     Friend WithEvents lblTimeInfo As Label
+    Friend WithEvents chkSkipIfSynced As CheckBox
 
 End Class
