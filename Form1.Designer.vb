@@ -42,7 +42,8 @@ Partial Class Form1
         MaxConcurrentThreadsToolStripMenuItem = New ToolStripMenuItem()
         txtMaxConcurrent = New ToolStripTextBox()
         chkFallbackUnsynced = New ToolStripMenuItem()
-        HelpToolStripMenuItem = New ToolStripMenuItem()
+        menuSkipFilesWithUnsyncedLyrics = New ToolStripMenuItem()
+        menuHelp = New ToolStripMenuItem()
         MenuStrip1.SuspendLayout()
         SuspendLayout()
         ' 
@@ -157,7 +158,7 @@ Partial Class Form1
         ' 
         ' MenuStrip1
         ' 
-        MenuStrip1.Items.AddRange(New ToolStripItem() {FileToolStripMenuItem, SettingsToolStripMenuItem1, HelpToolStripMenuItem})
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FileToolStripMenuItem, SettingsToolStripMenuItem1, menuHelp})
         MenuStrip1.Location = New Point(0, 0)
         MenuStrip1.Name = "MenuStrip1"
         MenuStrip1.Size = New Size(677, 24)
@@ -179,7 +180,8 @@ Partial Class Form1
         ' 
         ' SettingsToolStripMenuItem1
         ' 
-        SettingsToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {menuSkipIfSynced, MaxConcurrentThreadsToolStripMenuItem, chkFallbackUnsynced})
+        SettingsToolStripMenuItem1.CheckOnClick = True
+        SettingsToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {menuSkipIfSynced, MaxConcurrentThreadsToolStripMenuItem, chkFallbackUnsynced, menuSkipFilesWithUnsyncedLyrics})
         SettingsToolStripMenuItem1.Name = "SettingsToolStripMenuItem1"
         SettingsToolStripMenuItem1.Size = New Size(61, 20)
         SettingsToolStripMenuItem1.Text = "Settings"
@@ -190,14 +192,14 @@ Partial Class Form1
         menuSkipIfSynced.CheckOnClick = True
         menuSkipIfSynced.CheckState = CheckState.Checked
         menuSkipIfSynced.Name = "menuSkipIfSynced"
-        menuSkipIfSynced.Size = New Size(223, 22)
+        menuSkipIfSynced.Size = New Size(237, 22)
         menuSkipIfSynced.Text = "Skip Files With Synced Lyrics"
         ' 
         ' MaxConcurrentThreadsToolStripMenuItem
         ' 
         MaxConcurrentThreadsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {txtMaxConcurrent})
         MaxConcurrentThreadsToolStripMenuItem.Name = "MaxConcurrentThreadsToolStripMenuItem"
-        MaxConcurrentThreadsToolStripMenuItem.Size = New Size(223, 22)
+        MaxConcurrentThreadsToolStripMenuItem.Size = New Size(237, 22)
         MaxConcurrentThreadsToolStripMenuItem.Text = "Max Concurrent Threads"
         ' 
         ' txtMaxConcurrent
@@ -212,14 +214,22 @@ Partial Class Form1
         chkFallbackUnsynced.CheckOnClick = True
         chkFallbackUnsynced.CheckState = CheckState.Checked
         chkFallbackUnsynced.Name = "chkFallbackUnsynced"
-        chkFallbackUnsynced.Size = New Size(223, 22)
+        chkFallbackUnsynced.Size = New Size(237, 22)
         chkFallbackUnsynced.Text = "Use Unsynced as fallback"
         ' 
-        ' HelpToolStripMenuItem
+        ' menuSkipFilesWithUnsyncedLyrics
         ' 
-        HelpToolStripMenuItem.Name = "HelpToolStripMenuItem"
-        HelpToolStripMenuItem.Size = New Size(44, 20)
-        HelpToolStripMenuItem.Text = "Help"
+        menuSkipFilesWithUnsyncedLyrics.Checked = True
+        menuSkipFilesWithUnsyncedLyrics.CheckState = CheckState.Checked
+        menuSkipFilesWithUnsyncedLyrics.Name = "menuSkipFilesWithUnsyncedLyrics"
+        menuSkipFilesWithUnsyncedLyrics.Size = New Size(237, 22)
+        menuSkipFilesWithUnsyncedLyrics.Text = "Skip Files With Unsynced Lyrics"
+        ' 
+        ' menuHelp
+        ' 
+        menuHelp.Name = "menuHelp"
+        menuHelp.Size = New Size(44, 20)
+        menuHelp.Text = "Help"
         ' 
         ' Form1
         ' 
@@ -269,6 +279,7 @@ Partial Class Form1
     Friend WithEvents MaxConcurrentThreadsToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents txtMaxConcurrent As ToolStripTextBox
     Friend WithEvents chkFallbackUnsynced As ToolStripMenuItem
-    Friend WithEvents HelpToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents menuHelp As ToolStripMenuItem
+    Friend WithEvents menuSkipFilesWithUnsyncedLyrics As ToolStripMenuItem
 
 End Class

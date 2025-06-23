@@ -301,6 +301,20 @@ Public Class Form1
                 End If
             Next
 
+            If menuSkipFilesWithUnsyncedLyrics.Checked AndAlso Not String.IsNullOrWhiteSpace(tfile.Tag.Lyrics) Then
+                Dim lyrics = tfile.Tag.Lyrics
+
+                ' Check for synced lyrics (timestamp format)
+                Dim isSynced As Boolean = Regex.IsMatch(lyrics, "\[\d{1,2}:\d{2}(\.\d{1,2})?\]")
+
+                ' Skip if lyrics exist but aren't synced
+                If Not isSynced Then
+                    LogSuccess(Path.GetFileName(filePath), "Skipped (Unsynced lyrics already exist)")
+                    UpdateLog($"{Path.GetFileName(filePath)}: Skipped - contains unsynced lyrics.")
+                    Return
+                End If
+            End If
+
             ' If no synced lyrics found, and fallback to unsynced is enabled, try unsynced LRClib lyrics
             If bestMatch Is Nothing AndAlso chkFallbackUnsynced.Checked Then
                 highestScore = -1
@@ -527,6 +541,9 @@ Public Class Form1
         AddHandler lstLog.DrawItem, AddressOf lstLog_DrawItem
         EnableDoubleBuffering(lvFileResults)
     End Sub
+
+
+
     Private Sub lstLog_DrawItem(sender As Object, e As DrawItemEventArgs)
         If e.Index < 0 Then Return
 
@@ -553,7 +570,10 @@ Public Class Form1
         e.DrawFocusRectangle()
     End Sub
 
-
+    Private Sub menuHelp_Click(sender As Object, e As EventArgs) Handles menuHelp.Click
+        Dim helpForm As New HelpForm()
+        helpForm.ShowDialog(Me)
+    End Sub
 End Class
 
 
