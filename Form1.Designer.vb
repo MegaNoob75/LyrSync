@@ -22,43 +22,34 @@ Partial Class Form1
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Form1))
-        btnSelectFolder = New Button()
         btnStart = New Button()
         lstLog = New ListBox()
         ProgressBar = New ProgressBar()
         lblProgress = New Label()
-        txtFolder = New TextBox()
         lblFailed = New Label()
         lvFileResults = New ListView()
         ColumnHeader1 = New ColumnHeader()
         ColumnHeader2 = New ColumnHeader()
-        numMaxConcurrent = New NumericUpDown()
-        Label1 = New Label()
-        TextBox1 = New TextBox()
         Label2 = New Label()
         Label3 = New Label()
-        chkFallbackUnsynced = New CheckBox()
         lblTimeInfo = New Label()
-        chkSkipIfSynced = New CheckBox()
         chkRetryFailed = New CheckBox()
-        CType(numMaxConcurrent, ComponentModel.ISupportInitialize).BeginInit()
+        MenuStrip1 = New MenuStrip()
+        FileToolStripMenuItem = New ToolStripMenuItem()
+        menuSelectFolder = New ToolStripMenuItem()
+        SettingsToolStripMenuItem1 = New ToolStripMenuItem()
+        menuSkipIfSynced = New ToolStripMenuItem()
+        MaxConcurrentThreadsToolStripMenuItem = New ToolStripMenuItem()
+        txtMaxConcurrent = New ToolStripTextBox()
+        chkFallbackUnsynced = New ToolStripMenuItem()
+        HelpToolStripMenuItem = New ToolStripMenuItem()
+        MenuStrip1.SuspendLayout()
         SuspendLayout()
-        ' 
-        ' btnSelectFolder
-        ' 
-        btnSelectFolder.ForeColor = SystemColors.ActiveCaptionText
-        btnSelectFolder.Location = New Point(12, 8)
-        btnSelectFolder.Name = "btnSelectFolder"
-        btnSelectFolder.Size = New Size(108, 32)
-        btnSelectFolder.TabIndex = 0
-        btnSelectFolder.Text = "Sellect folder"
-        btnSelectFolder.UseVisualStyleBackColor = True
         ' 
         ' btnStart
         ' 
         btnStart.ForeColor = SystemColors.ActiveCaptionText
-        btnStart.Location = New Point(880, 833)
+        btnStart.Location = New Point(10, 701)
         btnStart.Name = "btnStart"
         btnStart.Size = New Size(131, 42)
         btnStart.TabIndex = 2
@@ -71,14 +62,14 @@ Partial Class Form1
         lstLog.ForeColor = SystemColors.Window
         lstLog.FormattingEnabled = True
         lstLog.ItemHeight = 15
-        lstLog.Location = New Point(12, 43)
+        lstLog.Location = New Point(12, 27)
         lstLog.Name = "lstLog"
-        lstLog.Size = New Size(657, 379)
+        lstLog.Size = New Size(657, 229)
         lstLog.TabIndex = 3
         ' 
         ' ProgressBar
         ' 
-        ProgressBar.Location = New Point(14, 443)
+        ProgressBar.Location = New Point(14, 274)
         ProgressBar.Name = "ProgressBar"
         ProgressBar.Size = New Size(655, 23)
         ProgressBar.Style = ProgressBarStyle.Continuous
@@ -87,24 +78,16 @@ Partial Class Form1
         ' lblProgress
         ' 
         lblProgress.AutoSize = True
-        lblProgress.Location = New Point(821, 313)
+        lblProgress.Location = New Point(133, 756)
         lblProgress.Name = "lblProgress"
         lblProgress.Size = New Size(30, 15)
         lblProgress.TabIndex = 5
         lblProgress.Text = "0 / 0"
         ' 
-        ' txtFolder
-        ' 
-        txtFolder.Location = New Point(126, 14)
-        txtFolder.Name = "txtFolder"
-        txtFolder.Size = New Size(543, 23)
-        txtFolder.TabIndex = 6
-        txtFolder.Text = "Please Sellect Folder To Scan"
-        ' 
         ' lblFailed
         ' 
         lblFailed.AutoSize = True
-        lblFailed.Location = New Point(821, 352)
+        lblFailed.Location = New Point(133, 786)
         lblFailed.Name = "lblFailed"
         lblFailed.Size = New Size(13, 15)
         lblFailed.TabIndex = 8
@@ -117,7 +100,7 @@ Partial Class Form1
         lvFileResults.ForeColor = SystemColors.Window
         lvFileResults.FullRowSelect = True
         lvFileResults.GridLines = True
-        lvFileResults.Location = New Point(14, 496)
+        lvFileResults.Location = New Point(12, 316)
         lvFileResults.Name = "lvFileResults"
         lvFileResults.Size = New Size(655, 379)
         lvFileResults.TabIndex = 9
@@ -134,39 +117,10 @@ Partial Class Form1
         ColumnHeader2.Text = "Status"
         ColumnHeader2.Width = 400
         ' 
-        ' numMaxConcurrent
-        ' 
-        numMaxConcurrent.Location = New Point(900, 10)
-        numMaxConcurrent.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
-        numMaxConcurrent.Name = "numMaxConcurrent"
-        numMaxConcurrent.Size = New Size(50, 23)
-        numMaxConcurrent.TabIndex = 10
-        numMaxConcurrent.Value = New Decimal(New Integer() {10, 0, 0, 0})
-        ' 
-        ' Label1
-        ' 
-        Label1.AutoSize = True
-        Label1.Location = New Point(719, 17)
-        Label1.Name = "Label1"
-        Label1.Size = New Size(175, 15)
-        Label1.TabIndex = 11
-        Label1.Text = "LRCLIB Max Concurrent Queries"
-        ' 
-        ' TextBox1
-        ' 
-        TextBox1.BackColor = SystemColors.ControlDarkDark
-        TextBox1.ForeColor = SystemColors.Window
-        TextBox1.Location = New Point(675, 43)
-        TextBox1.Multiline = True
-        TextBox1.Name = "TextBox1"
-        TextBox1.Size = New Size(336, 235)
-        TextBox1.TabIndex = 12
-        TextBox1.Text = resources.GetString("TextBox1.Text")
-        ' 
         ' Label2
         ' 
         Label2.AutoSize = True
-        Label2.Location = New Point(682, 313)
+        Label2.Location = New Point(10, 759)
         Label2.Name = "Label2"
         Label2.Size = New Size(86, 15)
         Label2.TabIndex = 13
@@ -175,45 +129,25 @@ Partial Class Form1
         ' Label3
         ' 
         Label3.AutoSize = True
-        Label3.Location = New Point(682, 352)
+        Label3.Location = New Point(10, 786)
         Label3.Name = "Label3"
         Label3.Size = New Size(64, 15)
         Label3.TabIndex = 14
         Label3.Text = "Files Failed"
         ' 
-        ' chkFallbackUnsynced
-        ' 
-        chkFallbackUnsynced.AutoSize = True
-        chkFallbackUnsynced.Location = New Point(682, 392)
-        chkFallbackUnsynced.Name = "chkFallbackUnsynced"
-        chkFallbackUnsynced.Size = New Size(235, 19)
-        chkFallbackUnsynced.TabIndex = 15
-        chkFallbackUnsynced.Text = "Use unsynced lyrics if synced not found"
-        chkFallbackUnsynced.UseVisualStyleBackColor = True
-        ' 
         ' lblTimeInfo
         ' 
         lblTimeInfo.AutoSize = True
-        lblTimeInfo.Location = New Point(883, 779)
+        lblTimeInfo.Location = New Point(147, 715)
         lblTimeInfo.Name = "lblTimeInfo"
         lblTimeInfo.Size = New Size(28, 15)
         lblTimeInfo.TabIndex = 16
         lblTimeInfo.Text = "0:00"
         ' 
-        ' chkSkipIfSynced
-        ' 
-        chkSkipIfSynced.AutoSize = True
-        chkSkipIfSynced.Location = New Point(682, 443)
-        chkSkipIfSynced.Name = "chkSkipIfSynced"
-        chkSkipIfSynced.Size = New Size(190, 19)
-        chkSkipIfSynced.TabIndex = 17
-        chkSkipIfSynced.Text = "Skip if already has synced lyrics"
-        chkSkipIfSynced.UseVisualStyleBackColor = True
-        ' 
         ' chkRetryFailed
         ' 
         chkRetryFailed.AutoSize = True
-        chkRetryFailed.Location = New Point(682, 496)
+        chkRetryFailed.Location = New Point(520, 226)
         chkRetryFailed.Name = "chkRetryFailed"
         chkRetryFailed.Size = New Size(138, 19)
         chkRetryFailed.TabIndex = 18
@@ -221,57 +155,120 @@ Partial Class Form1
         chkRetryFailed.UseVisualStyleBackColor = True
         chkRetryFailed.Visible = False
         ' 
+        ' MenuStrip1
+        ' 
+        MenuStrip1.Items.AddRange(New ToolStripItem() {FileToolStripMenuItem, SettingsToolStripMenuItem1, HelpToolStripMenuItem})
+        MenuStrip1.Location = New Point(0, 0)
+        MenuStrip1.Name = "MenuStrip1"
+        MenuStrip1.Size = New Size(677, 24)
+        MenuStrip1.TabIndex = 19
+        MenuStrip1.Text = "MenuStrip1"
+        ' 
+        ' FileToolStripMenuItem
+        ' 
+        FileToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {menuSelectFolder})
+        FileToolStripMenuItem.Name = "FileToolStripMenuItem"
+        FileToolStripMenuItem.Size = New Size(37, 20)
+        FileToolStripMenuItem.Text = "File"
+        ' 
+        ' menuSelectFolder
+        ' 
+        menuSelectFolder.Name = "menuSelectFolder"
+        menuSelectFolder.Size = New Size(144, 22)
+        menuSelectFolder.Text = "Sellect Folder"
+        ' 
+        ' SettingsToolStripMenuItem1
+        ' 
+        SettingsToolStripMenuItem1.DropDownItems.AddRange(New ToolStripItem() {menuSkipIfSynced, MaxConcurrentThreadsToolStripMenuItem, chkFallbackUnsynced})
+        SettingsToolStripMenuItem1.Name = "SettingsToolStripMenuItem1"
+        SettingsToolStripMenuItem1.Size = New Size(61, 20)
+        SettingsToolStripMenuItem1.Text = "Settings"
+        ' 
+        ' menuSkipIfSynced
+        ' 
+        menuSkipIfSynced.Checked = True
+        menuSkipIfSynced.CheckOnClick = True
+        menuSkipIfSynced.CheckState = CheckState.Checked
+        menuSkipIfSynced.Name = "menuSkipIfSynced"
+        menuSkipIfSynced.Size = New Size(223, 22)
+        menuSkipIfSynced.Text = "Skip Files With Synced Lyrics"
+        ' 
+        ' MaxConcurrentThreadsToolStripMenuItem
+        ' 
+        MaxConcurrentThreadsToolStripMenuItem.DropDownItems.AddRange(New ToolStripItem() {txtMaxConcurrent})
+        MaxConcurrentThreadsToolStripMenuItem.Name = "MaxConcurrentThreadsToolStripMenuItem"
+        MaxConcurrentThreadsToolStripMenuItem.Size = New Size(223, 22)
+        MaxConcurrentThreadsToolStripMenuItem.Text = "Max Concurrent Threads"
+        ' 
+        ' txtMaxConcurrent
+        ' 
+        txtMaxConcurrent.Name = "txtMaxConcurrent"
+        txtMaxConcurrent.Size = New Size(100, 23)
+        txtMaxConcurrent.Text = "10"
+        ' 
+        ' chkFallbackUnsynced
+        ' 
+        chkFallbackUnsynced.Checked = True
+        chkFallbackUnsynced.CheckOnClick = True
+        chkFallbackUnsynced.CheckState = CheckState.Checked
+        chkFallbackUnsynced.Name = "chkFallbackUnsynced"
+        chkFallbackUnsynced.Size = New Size(223, 22)
+        chkFallbackUnsynced.Text = "Use Unsynced as fallback"
+        ' 
+        ' HelpToolStripMenuItem
+        ' 
+        HelpToolStripMenuItem.Name = "HelpToolStripMenuItem"
+        HelpToolStripMenuItem.Size = New Size(44, 20)
+        HelpToolStripMenuItem.Text = "Help"
+        ' 
         ' Form1
         ' 
         AutoScaleDimensions = New SizeF(7F, 15F)
         AutoScaleMode = AutoScaleMode.Font
         AutoSize = True
         BackColor = SystemColors.ControlDarkDark
-        ClientSize = New Size(1021, 881)
+        ClientSize = New Size(677, 809)
         Controls.Add(chkRetryFailed)
-        Controls.Add(chkSkipIfSynced)
         Controls.Add(lblTimeInfo)
-        Controls.Add(chkFallbackUnsynced)
         Controls.Add(Label3)
         Controls.Add(Label2)
-        Controls.Add(TextBox1)
-        Controls.Add(Label1)
-        Controls.Add(numMaxConcurrent)
         Controls.Add(lvFileResults)
         Controls.Add(lblFailed)
-        Controls.Add(txtFolder)
         Controls.Add(lblProgress)
         Controls.Add(ProgressBar)
         Controls.Add(lstLog)
         Controls.Add(btnStart)
-        Controls.Add(btnSelectFolder)
+        Controls.Add(MenuStrip1)
         ForeColor = SystemColors.ButtonHighlight
         FormBorderStyle = FormBorderStyle.FixedSingle
+        MainMenuStrip = MenuStrip1
         Name = "Form1"
         Text = "LYRSYNC V1.0"
-        CType(numMaxConcurrent, ComponentModel.ISupportInitialize).EndInit()
+        MenuStrip1.ResumeLayout(False)
+        MenuStrip1.PerformLayout()
         ResumeLayout(False)
         PerformLayout()
     End Sub
-
-    Friend WithEvents btnSelectFolder As Button
     Friend WithEvents btnStart As Button
     Friend WithEvents lstLog As ListBox
     Friend WithEvents ProgressBar As ProgressBar
     Friend WithEvents lblProgress As Label
-    Friend WithEvents txtFolder As TextBox
     Friend WithEvents lblFailed As Label
     Friend WithEvents lvFileResults As ListView
     Friend WithEvents ColumnHeader1 As ColumnHeader
     Friend WithEvents ColumnHeader2 As ColumnHeader
-    Friend WithEvents numMaxConcurrent As NumericUpDown
-    Friend WithEvents Label1 As Label
-    Friend WithEvents TextBox1 As TextBox
     Friend WithEvents Label2 As Label
     Friend WithEvents Label3 As Label
-    Friend WithEvents chkFallbackUnsynced As CheckBox
     Friend WithEvents lblTimeInfo As Label
-    Friend WithEvents chkSkipIfSynced As CheckBox
     Friend WithEvents chkRetryFailed As CheckBox
+    Friend WithEvents MenuStrip1 As MenuStrip
+    Friend WithEvents FileToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents menuSelectFolder As ToolStripMenuItem
+    Friend WithEvents SettingsToolStripMenuItem1 As ToolStripMenuItem
+    Friend WithEvents menuSkipIfSynced As ToolStripMenuItem
+    Friend WithEvents MaxConcurrentThreadsToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents txtMaxConcurrent As ToolStripTextBox
+    Friend WithEvents chkFallbackUnsynced As ToolStripMenuItem
+    Friend WithEvents HelpToolStripMenuItem As ToolStripMenuItem
 
 End Class

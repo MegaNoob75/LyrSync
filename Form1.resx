@@ -117,23 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="TextBox1.Text" xml:space="preserve">
-    <value>Instructions
-
-only supports flac and mp3 files.
-
-1) Sellect folder where files are located.
-It is recursive so all files in subfolders will be sellected also.
-
-2) Set how many files to get the lyrics for at a time.
-I dont know if LRCLIB has a request limit or how your pc will handle itso test it out.
-
-3) Click Embed Lyrics and wait!
-
-If any synced lyrics couldnt be found will show
-in the list on the bottom left along with any errors.
-
-No results from API means there aren't any lyrics found for that file.
-No suitable match means there were lyrics but they aren't synced so the file was skipped.</value>
-  </data>
+  <metadata name="MenuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>64</value>
+  </metadata>
 </root>

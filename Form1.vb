@@ -42,15 +42,15 @@ Public Class Form1
     End Sub
 
     ' Opens a folder dialog to select a folder containing FLAC files
-    Private Sub btnSelectFolder_Click(sender As Object, e As EventArgs) Handles btnSelectFolder.Click
+    Private Sub menuSelectFolder_Click(sender As Object, e As EventArgs) Handles menuSelectFolder.Click
         Using fbd As New FolderBrowserDialog()
             If fbd.ShowDialog() = DialogResult.OK Then
                 selectedFolder = fbd.SelectedPath
-                txtFolder.Text = selectedFolder
+                'txtFolder.Text = selectedFolder
 
                 Dim audioFiles = Directory.GetFiles(selectedFolder, "*.*", SearchOption.AllDirectories)
                 Dim validFiles = audioFiles.Where(Function(f) f.EndsWith(".flac", StringComparison.OrdinalIgnoreCase) OrElse
-                                                f.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase)).ToArray()
+                                              f.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase)).ToArray()
 
                 lvFileResults.Items.Clear()
                 For Each file In validFiles
@@ -66,6 +66,7 @@ Public Class Form1
             End If
         End Using
     End Sub
+
 
 
     ' Starts or cancels the tagging process
@@ -106,7 +107,7 @@ Public Class Form1
         UpdateFailedLabel()
 
         ' Set maximum concurrency based on user input
-        semaphore = New SemaphoreSlim(CInt(numMaxConcurrent.Value))
+        semaphore = New SemaphoreSlim(CInt(txtMaxConcurrent.Text))
         'clear faild files from list
         'failedFilePaths.Clear()
 
@@ -225,7 +226,7 @@ Public Class Form1
             Dim rawTitle = tfile.Tag.Title
 
             ' Check if lyrics already exist and look like synced lyrics (contain timestamps)
-            If chkSkipIfSynced.Checked AndAlso Not String.IsNullOrWhiteSpace(tfile.Tag.Lyrics) Then
+            If menuSkipIfSynced.Checked AndAlso Not String.IsNullOrWhiteSpace(tfile.Tag.Lyrics) Then
                 Dim existingLyrics = tfile.Tag.Lyrics
                 ' Simple check: look for [mm:ss.xx] pattern to detect synced lyrics
                 If Regex.IsMatch(existingLyrics, "\[\d{1,2}:\d{2}(\.\d{1,2})?\]") Then
@@ -500,10 +501,6 @@ Public Class Form1
         End If
     End Sub
 
-
-
-
-
     ' Updates the failed file count label
     Sub UpdateFailedLabel()
         If lblFailed.InvokeRequired Then
@@ -555,6 +552,7 @@ Public Class Form1
         e.Graphics.DrawString(text, e.Font, textColor, e.Bounds.Location)
         e.DrawFocusRectangle()
     End Sub
+
 
 End Class
 
